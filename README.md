@@ -6,3 +6,9 @@ Our mobile phone App [Pilot Go](https://www.labpano.com/support/download#PilotGo
 
 
 
+The English version document is here:  [PilotControlProtocol-en](https://github.com/labpano/pilot-control-protocol/blob/main/PilotControlProtocol-en.md)
+
+中文版文档在这里：[PilotControlProtocol-cn](https://github.com/labpano/pilot-control-protocol/blob/main/PilotControlProtocol-cn.md)
+
+
+
