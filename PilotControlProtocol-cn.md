@@ -213,7 +213,7 @@ Http请求的通用json格式如下：
 
 ### 连接流程
 
-<img src="Doc_Images_cn/connect.png" alt="连接相机" style="zoom: 40%;" />  
+<img src="Doc_Images_cn/connect.png" alt="连接相机" style="zoom: 80%;" />  
 
 
 
@@ -581,7 +581,7 @@ Http请求的通用json格式如下：
 
 ### 录像流程
 
-<img src="Doc_Images_cn/record.png" alt="录像流程" style="zoom:50%;" />
+<img src="Doc_Images_cn/record.png" alt="录像流程" style="zoom:80%;" />
 
 
 
@@ -1599,7 +1599,7 @@ Http请求的通用json格式如下：
 
 ### 直播流程
 
-<img src="Doc_Images_cn/live.png" alt="直播流程" style="zoom:50%;" />
+<img src="Doc_Images_cn/live.png" alt="直播流程" style="zoom:100%;" />
 
 
 
@@ -3040,7 +3040,7 @@ http+json,Post传参
 
 ### 收流-iOS
 
-<img src="Doc_Images_cn/preview-ios.png" alt="iOS收相机预览流流程" style="zoom:50%;" />
+<img src="Doc_Images_cn/preview-ios.png" alt="iOS收相机预览流流程" style="zoom:80%;" />
 
 
 
@@ -3050,4 +3050,4 @@ http+json,Post传参
 
 
 
-<img src="Doc_Images_cn/preview-android.png" alt="Android收相机预览流流程" style="zoom:50%;" />
+<img src="Doc_Images_cn/preview-android.png" alt="Android收相机预览流流程" style="zoom:100%;" />

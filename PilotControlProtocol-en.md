@@ -217,7 +217,7 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 
 ### Connect Process
 
-<img src="Doc_Images_en/connect.png" alt="conncet" style="zoom: 40%;" />
+<img src="Doc_Images_en/connect.png" alt="conncet" style="zoom: 80%;" />
 
 
 
@@ -589,7 +589,7 @@ Camera preview stream address: Camera  IP: 6666
 
 
 
-<img src="Doc_Images_en/record.png" alt="record" style="zoom: 50%;" />
+<img src="Doc_Images_en/record.png" alt="record" style="zoom: 80%;" />
 
 
 
@@ -1609,7 +1609,7 @@ Return failure
 
 ### Live streaming process
 
-<img src="Doc_Images_en/live.png" alt="live" style="zoom: 50%;" />
+<img src="Doc_Images_en/live.png" alt="live" style="zoom: 100%;" />
 
 
 
@@ -3058,7 +3058,7 @@ Only used to call camera.takePicture after turning on hide photographer mode.
 
 ### Receive Stream-iOS
 
-<img src="Doc_Images_en/preview-ios.png" alt="preview-ios" style="zoom: 50%;" />
+<img src="Doc_Images_en/preview-ios.png" alt="preview-ios" style="zoom: 80%;" />
 
 
 
@@ -3066,5 +3066,5 @@ Only used to call camera.takePicture after turning on hide photographer mode.
 
 ### Receive Stream-Android
 
-<img src="Doc_Images_en/preview-android.png" alt="preview-android" style="zoom: 50%;" />
+<img src="Doc_Images_en/preview-android.png" alt="preview-android" style="zoom: 100%;" />
 
