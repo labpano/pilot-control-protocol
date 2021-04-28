@@ -8,7 +8,9 @@ If Pilot Camera has turned off screen, it cannot be searched.
 
 After connected to Pilot Camera, the UI prompts "mobile controlling...".
 
-This document applies to Pilot OS 5.12.0 and above.
+
+
+**This document applies to Pilot OS 5.12.0 and above.**
 
 
 
@@ -213,6 +215,12 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 
 
 
+### Connect Process
+
+<img src="Doc_Images_en/connect.png" alt="conncet" style="zoom: 40%;" />
+
+
+
 
 
 ### Connect Camera
@@ -238,16 +246,17 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 
 **Output params:**  
 
-| Field           | Type    | Description                              |
-| --------------- | ------- | ---------------------------------------- |
-| sessionId       | string  | Session id                               |
-| timeout         | int     | Connection timeout in ms                 |
+| Field           | Type    | Description                                                  |
+| --------------- | ------- | ------------------------------------------------------------ |
+| sessionId       | string  | Session id                                                   |
+| timeout         | int     | Connection timeout in ms                                     |
 | channel         | string  | Channel name, used to indicate the firmware type. Era is `standard`, One and One EE are `one_standard `. Other channels may be added later. |
 | mode            | string  | The currnet shooting mode of Pilot Camera.  `photo` means Take Photo;  `video` means Stitched Video;  `video_feye` means Unstitched Video;  `video_street_view` means Streetview Video;  `video_time_lapse` means TimeLapse;  `photo_tours` means PilotTour |
 | status          | boolean | Pilot Camera status, 'true' means recording or streaming; 'false' means idle |
-| firmwareVersion | string  | Pilot OS version                         |
-| exposureType    | int     | Exposure mode type: 0 for auto mode, 1 for manual mode |
-| modeWay         | string  | Used to hide photographer mode. This field is not supported in other modes |
+| firmwareVersion | string  | Pilot OS version                                             |
+| exposureType    | int     | Exposure mode type: 0 for auto mode, 1 for manual mode       |
+| modeWay         | string  | It can be: NULL (empty value), "qry" (hidden photographer is in progress) when taking photo or roaming mode. Other modes do not support this field. |
+| _features       | Array   | The inclusion of "`roam`" means that the current Pilot OS supports the Pilot Tour function; the inclusion of "`AMSD`" means that the current Pilot OS does not support the "stitching focus" function |
 
 **Response:**  
 
@@ -273,7 +282,7 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 
 ### Heartbeat
 
-**Function:**  After Pilot Camera has established a successful connection, the mobile phone requests the heartbeat, Pilot Camera  receives it and returns to mobile phone, and then mobile phone send back and circulates all the time.
+**Function:**  After the camera and the mobile phone are successfully connected, the mobile phone requests the heartbeat, and keeps calling the heartbeat interface to ensure that the camera is connected to the mobile phone,It is recommended to call it every 1s.   (Ensure that a client corresponds to a Pilot camera. The Pilot camera will detect the heartbeat. If it exceeds two minutes, all clients are allowed to connect. Within two minutes, only the device that was connected last time is allowed to connect)
 
 **Call Mode:**  http+json,Post
 
@@ -305,6 +314,10 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 | temperature     | int     | Temperature (suitable for Pilot OneEE), when the temperature is greater than 80℃,  prompts camera CPU temperature is too high |
 | taskId          | string  | The current camera in progress (preferred) task id, currently only supports photographing tasks |
 | code            | int     | Live broadcast error code: 1-Live broadcast; 0-Live broadcast not started; -3006-Retry live broadcast (camera.restartLive); Other error codes: call stop live broadcast (camera.setLiveStop) |
+| pushTime        | String  | Live time                                |
+| currentTime     | float   | Pilot camera system current time         |
+| lapseTime       | String  | Time-lapse photography time              |
+| tourState       | boolean | Roaming on                               |
 
 **Response:**  
 
@@ -365,7 +378,7 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 
 ### Start Preview
 
-**Function:**  Open camera preview.
+**Function:**  Open camera preview.(It means that the camera starts to push the preview stream, and then the client receives the stream, and the preview effect can be seen on the client. Currently, only Android and iOS are supported. Please contact the business partner if necessary)
 
 **Call Mode:**  http+json,Post
 
@@ -393,13 +406,13 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 } 
 ```
 
-
+Camera preview stream address: Camera  IP: 6666
 
 
 
 ### Stop Preview
 
-**Function:**  Stop the preview.
+**Function:**  Stop the preview. (camera._startPreview must return done to call this interface)
 
 **Call Mode:**  http+json,Post
 
@@ -522,7 +535,7 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 
 **Input params:**  None
 
-**Output params**: When in inProgress (currently used only to Hide photographer mode)
+**Output params**: When in inProgress (Currently, only the hidden photographer mode is turned on, the following fields" `_pIndex`" and "`_tick`" will be output)
 
 | Field   | Type | Description                              |
 | :------ | :--- | :--------------------------------------- |
@@ -572,9 +585,19 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 
 
 
+### Recordding Process
+
+
+
+<img src="Doc_Images_en/record.png" alt="record" style="zoom: 50%;" />
+
+
+
+
+
 ### Capture - Start Video
 
-**Function:**  Start record video.
+**Function:**  Start record video.(Call the switch mode interface and it is not stitched, real-time, Google Street View, time-lapse photography mode, directly call this interface)
 
 **Call Mode:**  http+json,Post
 
@@ -679,7 +702,7 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 
 ### Get File List
 
-**Function:**  Get the list of gallery files
+**Function:**  Get the list of gallery files (Currently only supports one-time access to all files of the current type)
 
 **Call Mode:**  http+json,Post
 
@@ -810,7 +833,7 @@ Return failure
 
 ### Capture - Set Countdown Switch
 
-**Function:**  Sets whether to turn on the countdown
+**Function:**  Sets whether to turn on the countdown(Default 3s when opened)
 
 **Call Mode:**  http+json,Post
 
@@ -1514,7 +1537,7 @@ Return failure
 
 | Option Name                              | Type                        | Description                              |
 | ---------------------------------------- | --------------------------- | ---------------------------------------- |
-| `_camera$roam$height`                    | string                      | PilotTour camera height. Float value, range [0,1000], values outside this range will be processed as boundary values. |
+| `_camera$roam$height`                    | string                      | PilotTour camera height. Float value, range [0,10], values outside this range will be processed as boundary values. |
 | `_camera$video$encode`                   | string                      | Stitched video codec, default H.264.     |
 | `_camera$video$encodeSupport`            | string Array                | Codec supported by Stitched video, read-only. Currently `[“H.264”,“H.265”]` |
 | `_camera$videoFishEye$encode`            | string                      | Unstitched video codec, default H.264.   |
@@ -1584,6 +1607,14 @@ Return failure
 
 
 
+### Live streaming process
+
+<img src="Doc_Images_en/live.png" alt="live" style="zoom: 50%;" />
+
+
+
+
+
 
 
 ### LiveStream - Get Platform Info
@@ -1608,18 +1639,20 @@ Return failure
 
 **Output params:**  
 
-| Field           | Type    | Description                              |
-| --------------- | ------- | ---------------------------------------- |
-| platformId      | int     | Platform Index                           |
-| account         | string  | Platform account name                    |
-| autoDefinition  | Boolean | Is open  autoDefinition                  |
-| definition      | string  | Resolution                               |
-| privacy         | int     |                                          |
-| title           | string  |                                          |
-| login           | Boolean | Is sign in                               |
-| facebookPubType | int     | 0 for Timeline; 1 for Pages; 2 for Groups |
-| facebookPubId   | string  | id                                       |
-| facebookPubName | string  | Name                                     |
+| Field           | Type    | Description                                                  |
+| --------------- | ------- | ------------------------------------------------------------ |
+| platformId      | int     | Platform Index                                               |
+| account         | string  | Platform account name                                        |
+| autoDefinition  | Boolean | Is open  autoDefinition                                      |
+| definition      | string  | Resolution                                                   |
+| privacy         | int     |                                                              |
+| title           | string  |                                                              |
+| login           | Boolean | 1. Whether the platform is logged in (facebook, youtube)                                                           2. The rtmp platform indicates whether identity authentication is turned on (Note: firmwareVersion greater than 5044 is available) |
+| facebookPubType | int     | 0 for Timeline; 1 for Pages; 2 for Groups                    |
+| facebookPubId   | string  | id                                                           |
+| facebookPubName | string  | Name                                                         |
+| token           | string  | 1. Token after login on facebook and youtube, empty means login information expired                                                                                     2. rtmp platform, means user name and password (remark: firmwareVersion greater than 5044 is available) format `Username; Password` Username means user name, Password means password |
+| pushId          | String  | self平台的直播名称                                           |
 
 Platform corresponding privacy:
 
@@ -1653,7 +1686,7 @@ YouTube: 0 Private; 1 Public; 2 Unlisted
 
 ### LiveStream - Set Title
 
-**Function:**  Set the stream title
+**Function:**  Set the stream title(Currently used to set the live broadcast address of the rtmp platform)
 
 **Call Mode:**  http+json,Post
 
@@ -2122,7 +2155,7 @@ Gets a list of bitrate supported by each platform for each resolution
 
 ### LiveStream - Reset State
 
-**Function:**  If stream error, you need to call this interface and set the state to not streaming.
+**Function:**  If stream error, you need to call this interface and set the state to not streaming.(This interface must be called when camera._setLiveStart returns error)
 
 **Call Mode:**  http+json,Post
 
@@ -2371,7 +2404,7 @@ Get current platform ID
 
 ### LiveStream - Get Options
 
-**Function:**  5.2.0 version added to get the Live options
+**Function:**  5.2.0 version added to get the Live options (Refer to camera.getOptions for parameter format)
 
 **Call Mode:**  http+json,Post
 
@@ -2397,17 +2430,19 @@ Get current platform ID
 
 **Live options table**:
 
-| Option                     | Type         | Description                              |
-| -------------------------- | ------------ | ---------------------------------------- |
-| `_live$rtmp$encode`        | string       | Selected codec for rtmp stream. Default is H.264 |
+| Option                     | Type         | Description                                                  |
+| -------------------------- | ------------ | ------------------------------------------------------------ |
+| `_live$rtmp$encode`        | string       | Selected codec for rtmp stream. Default is H.264             |
 | `_live$rtmp$encodeSupport` | string Array | Supported codecs for rtmp stream, read only。  `[“H.264”,“H.265”]` |
-| `_live$self$encode`        | string       | Selected codec for self stream. Default is H.264 |
+| `_live$self$encode`        | string       | Selected codec for self stream. Default is H.264             |
 | `_live$self$encodeSupport` | string Array | Supported codecs for self stream, read only。  `[“H.264”,“H.265”]` |
+| `_live$rtmp$login`         | bool         | Set the login status of rtmp streaming. Turn on: ture Turn off: false. Remarks: firmwareVersion greater than 5044 is available |
+| `_live$rtmp$token`         | String       | Set the user name and password for rtmp streaming; string format "`UserName;Password`".                                                                                         Note: Supported characters `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@._-` Note: Available if firmwareVersion greater than 5044 |
 
 
 ### LiveStream - Set Options
 
-**Function:**  5.2.0 version added, set Live options
+**Function:**  5.2.0 version added, set Live options (Refer to camera.setOptions for parameter format)
 
 **Call Mode:**  http+json,Post
 
@@ -2702,7 +2737,7 @@ Get current platform ID
 
 ### System - Upload Logo File
 
-**Function:**  Upload logo file 
+**Function:**  Upload logo file  (Logo image requires 512*512 pixels, the size does not exceed 1M)
 
 **Request url:**  http://x.x.x.x:8080/osc/commands/execute
 
@@ -3012,4 +3047,24 @@ Only used to call camera.takePicture after turning on hide photographer mode.
 **Input params:**  None
 
 **Output params:**  None
+
+
+
+
+
+
+
+## 3 Receive Stream
+
+### Receive Stream-iOS
+
+<img src="Doc_Images_en/preview-ios.png" alt="preview-ios" style="zoom: 50%;" />
+
+
+
+
+
+### Receive Stream-Android
+
+<img src="Doc_Images_en/preview-android.png" alt="preview-android" style="zoom: 50%;" />
 

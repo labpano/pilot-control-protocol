@@ -8,7 +8,9 @@ Pilot控制协议用于手机或PC应用在局域网内控制Pilot系列相机(P
 
 连接到相机之后，相机UI会提示 “手机控制中...”。
 
-本协议适用于Pilot OS  5.12.0 及以上版本。
+
+
+**本协议适用于Pilot OS  5.12.0 及以上版本。**
 
 
 
@@ -76,7 +78,7 @@ Http请求的通用json格式如下：
 
 **调用方式：**  http+json,Post传参
 
-**请求地址：**  ​http://x.x.x.x.x:8080/osc/commands/execute
+**请求地址：**  http://x.x.x.x.x:8080/osc/commands/execute
 
 **请求头version：**3.1
 
@@ -209,6 +211,12 @@ Http请求的通用json格式如下：
 
 
 
+### 连接流程
+
+<img src="Doc_Images_cn/connect.png" alt="连接相机" style="zoom: 40%;" />  
+
+
+
 
 
 ###  连接相机
@@ -234,16 +242,17 @@ Http请求的通用json格式如下：
 
 **输出参数：**   
 
-| 字段              | 字段类型    | 描述                                       |
-| --------------- | ------- | ---------------------------------------- |
-| sessionId       | string  | 会话id                                     |
-| timeout         | int     | 连接超时时间，单位ms                              |
-| channel         | string  | 渠道名，用于表示固件类型。Era为`standard`，One和OneEE为`one_standard`。后续可能增加其它的渠道号。 |
-| mode            | string  | 当前相机所在的拍摄模式。  `photo`代表拍照；  `video`代表实时拼接录像；  `video_feye`代表未拼接录像；  `video_street_view`代表谷歌街景录像模式；  `video_time_lapse`代表延时摄影； `photo_tours`代表PilotTour |
-| status          | boolean | 相机工作状态，`true`代表正在录像或者拍照工作中；`false`代表空闲状态 |
-| firmwareVersion | string  | Pilot OS 版本号                             |
-| exposureType    | int     | 曝光模式类型：0代表自动模式，1代表手动模式                   |
-| modeWay         | String  | 用于隐藏拍摄者。其他模式不支持此字段                       |
+| 字段            | 字段类型 | 描述                                                         |
+| --------------- | -------- | ------------------------------------------------------------ |
+| sessionId       | string   | 会话id                                                       |
+| timeout         | int      | 连接超时时间，单位ms                                         |
+| channel         | string   | 渠道名，用于表示固件类型。Era为`standard`，One和OneEE为`one_standard`。后续可能增加其它的渠道号。 |
+| mode            | string   | 当前相机所在的拍摄模式。  `photo`代表拍照；  `video`代表实时拼接录像；  `video_feye`代表未拼接录像；  `video_street_view`代表谷歌街景录像模式；  `video_time_lapse`代表延时摄影； `photo_tours`代表PilotTour |
+| status          | boolean  | 相机工作状态，`true`代表正在录像或者拍照工作中；`false`代表空闲状态 |
+| firmwareVersion | string   | Pilot OS 版本号                                              |
+| exposureType    | int      | 曝光模式类型：0代表自动模式，1代表手动模式                   |
+| modeWay         | String   | 拍照、漫游模式时可为: NULL(空值)、“qry”(正在进行隐藏拍摄者)。其他模式不支持此字段。 |
+| _features       | Array    | 包含"roam"代表当前Pilot OS支持Pilot Tour功能；包含“AMSD”代表当前Pilot OS不支持了“拼接焦距”功能 |
 
 **返回内容：**
 
@@ -269,7 +278,7 @@ Http请求的通用json格式如下：
 
 ###  建立心跳
 
-**功能：** 相机与手机建立连接成功之后，手机请求心跳，相机端收到之后返回给手机端，手机端收到之后再回传，一直循环。
+**功能：** 相机与手机建立连接成功之后，手机请求心跳，一直循环调用心跳的接口，确保相机与手机连接，建议每隔1s调用一次。(确保一个客户端对应一台Pilot相机，Pilot相机会检测心跳，超过两分钟，允许所有客户端进行连接，在两分钟之内，只允许上次连接过的设备进行连接)
 
 **调用方式：**  http+json,Post传参
 
@@ -301,6 +310,10 @@ Http请求的通用json格式如下：
 | temperature     | int     | 机器温度(适用于Pilot One户外版)，温度大于80℃时，提示相机Cpu温度过高 |
 | taskId          | String  | 当前相机进行中的（首选）任务id，目前仅支持拍照任务               |
 | code            | Int     | 直播错误码:1 - 正在直播；0 - 未开始直播； -3006 - 可重试直播(camera._restartLive)；其他错误码：调用停止直播(camera._setLiveStop) |
+| pushTime        | String  | 直播时间                                     |
+| currentTime     | float   | Pilot相机系统当前时间                            |
+| lapseTime       | String  | 延时摄影时间                                   |
+| tourState       | boolean | 漫游开启状态                                   |
 
 **返回内容：**
 
@@ -361,7 +374,7 @@ Http请求的通用json格式如下：
 
 ###  开启预览
 
-**功能：** 开启相机预览。
+**功能：** 开启相机预览。(指相机端开始推预览流，然后客户端收流，在客户端可以看到预览效果,目前只支持安卓和iOS，如有需要请联系商务对接人)
 
 **调用方式：**  http+json,Post传参
 
@@ -389,13 +402,13 @@ Http请求的通用json格式如下：
 } 
 ```
 
-
+相机端预览流地址:相机IP:6666
 
 
 
 ###  关闭预览
 
-**功能：** 关闭相机的预览。
+**功能：** 关闭相机的预览。(camera._startPreview 必须返回done，才能调用这个接口)
 
 **调用方式：**  http+json,Post传参
 
@@ -518,7 +531,7 @@ Http请求的通用json格式如下：
 
 **输入参数：**无
 
-**输出参数**：处于inProgress时(目前只用于隐藏拍摄者模式)
+**输出参数**：处于inProgress时(目前只有隐藏拍摄者模式开启，才会输出下面的字段"`_pIndex`"、"`_tick`")
 
 | 字段      | 类型   | 说明                       |
 | :------ | :--- | :----------------------- |
@@ -566,11 +579,15 @@ Http请求的通用json格式如下：
 
 
 
+### 录像流程
+
+<img src="Doc_Images_cn/record.png" alt="录像流程" style="zoom:50%;" />
+
 
 
 ###  拍摄-开始录像
 
-**功能：** 调用相机录像。
+**功能：** 调用相机录像。(调用了切换模式接口且是未拼接、实时、谷歌街景、延时摄影模式，直接调用此接口)
 
 **调用方式：**  http+json,Post传参
 
@@ -677,7 +694,7 @@ Http请求的通用json格式如下：
 
 ###  获取图库文件列表
 
-**功能：** 获取相机图库文件列表
+**功能：** 获取相机图库文件列表(目前只支持一次性获取当前类型的所有文件)
 
 **调用方式：**  http+json,Post传参
 
@@ -691,7 +708,7 @@ Http请求的通用json格式如下：
 
 | 字段            | 字段类型   | 描述                                       |
 | ------------- | ------ | ---------------------------------------- |
-| fileType      | string | 文件类型  1) image:图片类型  2) video:视频类型  3) all:图片与视频 |
+| fileType      | string | 文件类型  `image`:图片类型   `video`:视频类型   `all`:图片与视频 |
 | startPosition | int    | 0                                        |
 | entryCount    | int    | 1                                        |
 | maxSize       | int    | 5                                        |
@@ -808,7 +825,7 @@ Http请求的通用json格式如下：
 
 ###  拍摄-设置倒计时开关
 
-**功能：** 设置是否打开倒计时
+**功能：** 设置是否打开倒计时(打开时默认3s)
 
 **调用方式：**  http+json,Post传参
 
@@ -1512,7 +1529,7 @@ Http请求的通用json格式如下：
 
 | 选项名称                                     | 类型                          | 描述                                       |
 | ---------------------------------------- | --------------------------- | ---------------------------------------- |
-| `_camera$roam$height`                    | String                      | PilotTour相机高度。浮点数值，取值范围[0,1000]，不在此范围内的设置值会处理为边界值。 |
+| `_camera$roam$height`                    | String                      | PilotTour相机高度。浮点数值，取值范围[0,10]，不在此范围内的设置值会处理为边界值。 |
 | `_camera$video$encode`                   | String                      | 实时拼接视频编码，默认H.264。                        |
 | `_camera$video$encodeSupport`            | String Array                | 实时拼接视频支持的编码，只读。当前为`[“H.264”,“H.265”]`    |
 | `_camera$videoFishEye$encode`            | String                      | 未拼接视频编码。默认H.264。                         |
@@ -1580,7 +1597,9 @@ Http请求的通用json格式如下：
 
 
 
+### 直播流程
 
+<img src="Doc_Images_cn/live.png" alt="直播流程" style="zoom:50%;" />
 
 
 
@@ -1606,18 +1625,20 @@ Http请求的通用json格式如下：
 
 **输出参数：**
 
-| 字段              | 字段类型    | 描述                    |
-| --------------- | ------- | --------------------- |
-| platformId      | int     | 平台id                  |
-| account         | String  | 平台账号名                 |
-| autoDefinition  | Boolean | 是否打开自动清晰度             |
-| definition      | String  | 清晰度(分辨率)              |
-| privacy         | int     | 平台隐私                  |
-| title           | String  | 平台标题                  |
-| login           | Boolean | 平台是否登录                |
-| facebookPubType | int     | 时间线（个人主页）：0；主页：1；小组：2 |
-| facebookPubId   | String  | id                    |
-| facebookPubName | String  | Name                  |
+| 字段            | 字段类型 | 描述                                                         |
+| --------------- | -------- | ------------------------------------------------------------ |
+| platformId      | int      | 平台id                                                       |
+| account         | String   | 平台账号名                                                   |
+| autoDefinition  | Boolean  | 是否打开自动清晰度                                           |
+| definition      | String   | 清晰度(分辨率)                                               |
+| privacy         | int      | 平台隐私                                                     |
+| title           | String   | 平台标题                                                     |
+| login           | Boolean  | 1、平台是否登录 (facebook、youtube)                                                                                           2、rtmp平台，表示是否开启了身份认证（备注:firmwareVersion大于5044可用） |
+| facebookPubType | int      | 时间线（个人主页）：0；主页：1；小组：2                      |
+| facebookPubId   | String   | id                                                           |
+| facebookPubName | String   | Name                                                         |
+| token           | string   | 1、facebook、youtube登录后的token，为空表示登录信息过期                                                2、rtmp平台，表示为用户名和密码（备注:firmwareVersion大于5044可用）                                                                                                                格式`Username;Password`Username表示用户名，Password表示密码 |
+| pushId          | String   | self平台的直播名称                                           |
 
 平台对应隐私:
 
@@ -1651,7 +1672,7 @@ Youtube: 0-私享(Private)  1-公开(Public)  2-不公开(Unlisted)
 
 ###  直播-设置标题
 
-**功能：** 设置标题
+**功能：** 设置标题(目前用于设置rtmp平台的直播地址)
 
 **调用方式：**  http+json,Post传参
 
@@ -2120,7 +2141,7 @@ http+json,Post传参
 
 ###  直播-重置直播状态
 
-**功能：** 直播出错后，需要调用这个接口，把状态设置为未直播。
+**功能：** 直播出错后，需要调用这个接口，把状态设置为未直播。(camera._setLiveStart返回error时必须调用这个接口)
 
 **调用方式：**  http+json,Post传参
 
@@ -2369,7 +2390,7 @@ http+json,Post传参
 
 ###  直播-获取设置选项
 
-**功能：** 5.2.0 版本增加，获取Live选项
+**功能：** 5.2.0 版本增加，获取Live选项(参数使用格式参考camera.getOptions)
 
 **调用方式：**  http+json,Post传参
 
@@ -2395,17 +2416,19 @@ http+json,Post传参
 
 **直播选项表**：
 
-| 选项名称                       | 值类型          | 描述                                 |
-| -------------------------- | ------------ | ---------------------------------- |
-| `_live$rtmp$encode`        | String       | rtmp编码，默认H.264。                    |
-| `_live$rtmp$encodeSupport` | String Array | 只读，rtmp支持的编码。当前为[“H.264”,“H.265”]  |
-| `_live$self$encode`        | String       | 自身推流编码，默认H.264。                    |
-| `_live$self$encodeSupport` | String Array | 只读，自身推流支持的编码。当前为 [“H.264”,“H.265”] |
+| 选项名称                   | 值类型       | 描述                                                         |
+| -------------------------- | ------------ | ------------------------------------------------------------ |
+| `_live$rtmp$encode`        | String       | rtmp编码，默认H.264。                                        |
+| `_live$rtmp$encodeSupport` | String Array | 只读，rtmp支持的编码。当前为[“H.264”,“H.265”]                |
+| `_live$self$encode`        | String       | 自身推流编码，默认H.264。                                    |
+| `_live$self$encodeSupport` | String Array | 只读，自身推流支持的编码。当前为 [“H.264”,“H.265”]           |
+| `_live$rtmp$login`         | bool         | 设置rtmp推流的login状态。开启:`ture`  关闭:`false` 。备注:firmwareVersion大于5044可用 |
+| `_live$rtmp$token`         | String       | 设置rtmp推流的用户名和密码； 字符串格式  "UserName;Password"。                         注意：支持的字符  `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@._-` 备注:firmwareVersion大于5044可用 |
 
 
 ###  直播-设置选项
 
-**功能：** 5.2.0 版本增加，设置Live选项
+**功能：** 5.2.0 版本增加，设置Live选项(参数使用格式参考camera.setOptions)
 
 **调用方式：**  http+json,Post传参
 
@@ -2700,7 +2723,7 @@ http+json,Post传参
 
 ###  系统-上传logo文件
 
-**功能：** 上传logo文件
+**功能：** 上传logo文件(Logo图片要求512*512像素，大小不超过1M)
 
 **请求地址：**  http://x.x.x.x:8080/osc/commands/execute
 
@@ -3010,3 +3033,21 @@ http+json,Post传参
 **输入参数：**无
 
 **输出参数:**  无
+
+
+
+## 3 收流
+
+### 收流-iOS
+
+<img src="Doc_Images_cn/preview-ios.png" alt="iOS收相机预览流流程" style="zoom:50%;" />
+
+
+
+
+
+### 收流-安卓
+
+
+
+<img src="Doc_Images_cn/preview-android.png" alt="Android收相机预览流流程" style="zoom:50%;" />
