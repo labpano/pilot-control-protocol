@@ -215,6 +215,14 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 
 
 
+Attention:
+
+1、When searching for devices, you must keep the camera on the screen.
+
+2, there will be a situation where the device is not searched (the probability is small), if you can not search for many times, please try to turn off WiFi, and then turn on WiFi or restart the camera.
+
+
+
 ### Connect Process
 
 <img src="Doc_Images_en/connect.png" alt="conncet" style="zoom: 80%;" />
@@ -246,15 +254,15 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 
 **Output params:**  
 
-| Field           | Type    | Description                                                  |
-| --------------- | ------- | ------------------------------------------------------------ |
-| sessionId       | string  | Session id                                                   |
-| timeout         | int     | Connection timeout in ms                                     |
+| Field           | Type    | Description                              |
+| --------------- | ------- | ---------------------------------------- |
+| sessionId       | string  | Session id                               |
+| timeout         | int     | Connection timeout in ms                 |
 | channel         | string  | Channel name, used to indicate the firmware type. Era is `standard`, One and One EE are `one_standard `. Other channels may be added later. |
 | mode            | string  | The currnet shooting mode of Pilot Camera.  `photo` means Take Photo;  `video` means Stitched Video;  `video_feye` means Unstitched Video;  `video_street_view` means Streetview Video;  `video_time_lapse` means TimeLapse;  `photo_tours` means PilotTour |
 | status          | boolean | Pilot Camera status, 'true' means recording or streaming; 'false' means idle |
-| firmwareVersion | string  | Pilot OS version                                             |
-| exposureType    | int     | Exposure mode type: 0 for auto mode, 1 for manual mode       |
+| firmwareVersion | string  | Pilot OS version                         |
+| exposureType    | int     | Exposure mode type: 0 for auto mode, 1 for manual mode |
 | modeWay         | string  | It can be: NULL (empty value), "qry" (hidden photographer is in progress) when taking photo or roaming mode. Other modes do not support this field. |
 | _features       | Array   | The inclusion of "`roam`" means that the current Pilot OS supports the Pilot Tour function; the inclusion of "`AMSD`" means that the current Pilot OS does not support the "stitching focus" function |
 
@@ -407,6 +415,44 @@ Note: if the state is`inProgress`, you need to call the **Query Progress**  inte
 ```
 
 Camera preview stream address: Camera  IP: 6666
+
+
+
+
+#### Parsing Preview Stream
+
+After the player side connects to the **camera** via IP and port with itself as a TCP **client**,  the camera automatically sends video packets.
+
+The packet consists of **packet head** and **video data**,  and the structure is shown as follows
+
+ \+ packet head + video data +
+
+
+
+
+##### packet head:
+
+ \+  magic  +  key  +  codec  +  ts  +  len  +
+
+- magic: 4 bytes (fixed to 0x12, 0x34, 0x56, 0x78, identifies the start of the packet, **big end sequence**)
+
+- key: 2 bytes (indicates whether it is a key frame, 0: no, 1: yes, **big end order**)
+
+- codec: 2 bytes (video encoding identifier, 1: H.264, **big end order**)
+
+- ts: 4 bytes (timestamp, **big end order**)
+
+- len: 4 bytes (length of video data, **big end order**)
+
+
+
+
+##### video data:
+This is the bare video data (H.264)
+
+
+
+You can also choose to receive the preview stream using Labpano's **PiPanoSDK**, which provides a way to parse the preview stream and render the panoramic picture. It can be downloaded here: [PiPanoSDK-iOS](https://pilot-1251012561.cos.ap-guangzhou.myqcloud.com/files/PiPanoSDK-iOS.zip), [PiPanoSDK-Android](https: //pilot-1251012561.cos.ap-guangzhou.myqcloud.com/files/PiPanoSDK-Android.zip)
 
 
 
@@ -1639,20 +1685,20 @@ Return failure
 
 **Output params:**  
 
-| Field           | Type    | Description                                                  |
-| --------------- | ------- | ------------------------------------------------------------ |
-| platformId      | int     | Platform Index                                               |
-| account         | string  | Platform account name                                        |
-| autoDefinition  | Boolean | Is open  autoDefinition                                      |
-| definition      | string  | Resolution                                                   |
-| privacy         | int     |                                                              |
-| title           | string  |                                                              |
+| Field           | Type    | Description                              |
+| --------------- | ------- | ---------------------------------------- |
+| platformId      | int     | Platform Index                           |
+| account         | string  | Platform account name                    |
+| autoDefinition  | Boolean | Is open  autoDefinition                  |
+| definition      | string  | Resolution                               |
+| privacy         | int     |                                          |
+| title           | string  |                                          |
 | login           | Boolean | 1. Whether the platform is logged in (facebook, youtube)                                                           2. The rtmp platform indicates whether identity authentication is turned on (Note: firmwareVersion greater than 5044 is available) |
-| facebookPubType | int     | 0 for Timeline; 1 for Pages; 2 for Groups                    |
-| facebookPubId   | string  | id                                                           |
-| facebookPubName | string  | Name                                                         |
+| facebookPubType | int     | 0 for Timeline; 1 for Pages; 2 for Groups |
+| facebookPubId   | string  | id                                       |
+| facebookPubName | string  | Name                                     |
 | token           | string  | 1. Token after login on facebook and youtube, empty means login information expired                                                                                     2. rtmp platform, means user name and password (remark: firmwareVersion greater than 5044 is available) format `Username; Password` Username means user name, Password means password |
-| pushId          | String  | self平台的直播名称                                           |
+| pushId          | String  | self平台的直播名称                              |
 
 Platform corresponding privacy:
 
@@ -2430,11 +2476,11 @@ Get current platform ID
 
 **Live options table**:
 
-| Option                     | Type         | Description                                                  |
-| -------------------------- | ------------ | ------------------------------------------------------------ |
-| `_live$rtmp$encode`        | string       | Selected codec for rtmp stream. Default is H.264             |
+| Option                     | Type         | Description                              |
+| -------------------------- | ------------ | ---------------------------------------- |
+| `_live$rtmp$encode`        | string       | Selected codec for rtmp stream. Default is H.264 |
 | `_live$rtmp$encodeSupport` | string Array | Supported codecs for rtmp stream, read only。  `[“H.264”,“H.265”]` |
-| `_live$self$encode`        | string       | Selected codec for self stream. Default is H.264             |
+| `_live$self$encode`        | string       | Selected codec for self stream. Default is H.264 |
 | `_live$self$encodeSupport` | string Array | Supported codecs for self stream, read only。  `[“H.264”,“H.265”]` |
 | `_live$rtmp$login`         | bool         | Set the login status of rtmp streaming. Turn on: ture Turn off: false. Remarks: firmwareVersion greater than 5044 is available |
 | `_live$rtmp$token`         | String       | Set the user name and password for rtmp streaming; string format "`UserName;Password`".                                                                                         Note: Supported characters `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@._-` Note: Available if firmwareVersion greater than 5044 |

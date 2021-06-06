@@ -211,6 +211,14 @@ Http请求的通用json格式如下：
 
 
 
+注意:
+
+1、搜索设备时，必须保持相机亮屏。
+
+2、会有出现搜索不到设备的情况(概率较小)，如果多次搜索不到，请尝试关闭WiFi，再打开WiFi或者重启相机。
+
+
+
 ### 连接流程
 
 <img src="Doc_Images_cn/connect.png" alt="连接相机" style="zoom: 80%;" />  
@@ -242,17 +250,17 @@ Http请求的通用json格式如下：
 
 **输出参数：**   
 
-| 字段            | 字段类型 | 描述                                                         |
-| --------------- | -------- | ------------------------------------------------------------ |
-| sessionId       | string   | 会话id                                                       |
-| timeout         | int      | 连接超时时间，单位ms                                         |
-| channel         | string   | 渠道名，用于表示固件类型。Era为`standard`，One和OneEE为`one_standard`。后续可能增加其它的渠道号。 |
-| mode            | string   | 当前相机所在的拍摄模式。  `photo`代表拍照；  `video`代表实时拼接录像；  `video_feye`代表未拼接录像；  `video_street_view`代表谷歌街景录像模式；  `video_time_lapse`代表延时摄影； `photo_tours`代表PilotTour |
-| status          | boolean  | 相机工作状态，`true`代表正在录像或者拍照工作中；`false`代表空闲状态 |
-| firmwareVersion | string   | Pilot OS 版本号                                              |
-| exposureType    | int      | 曝光模式类型：0代表自动模式，1代表手动模式                   |
-| modeWay         | String   | 拍照、漫游模式时可为: NULL(空值)、“qry”(正在进行隐藏拍摄者)。其他模式不支持此字段。 |
-| _features       | Array    | 包含"roam"代表当前Pilot OS支持Pilot Tour功能；包含“AMSD”代表当前Pilot OS不支持了“拼接焦距”功能 |
+| 字段              | 字段类型    | 描述                                       |
+| --------------- | ------- | ---------------------------------------- |
+| sessionId       | string  | 会话id                                     |
+| timeout         | int     | 连接超时时间，单位ms                              |
+| channel         | string  | 渠道名，用于表示固件类型。Era为`standard`，One和OneEE为`one_standard`。后续可能增加其它的渠道号。 |
+| mode            | string  | 当前相机所在的拍摄模式。  `photo`代表拍照；  `video`代表实时拼接录像；  `video_feye`代表未拼接录像；  `video_street_view`代表谷歌街景录像模式；  `video_time_lapse`代表延时摄影； `photo_tours`代表PilotTour |
+| status          | boolean | 相机工作状态，`true`代表正在录像或者拍照工作中；`false`代表空闲状态 |
+| firmwareVersion | string  | Pilot OS 版本号                             |
+| exposureType    | int     | 曝光模式类型：0代表自动模式，1代表手动模式                   |
+| modeWay         | String  | 拍照、漫游模式时可为: NULL(空值)、“qry”(正在进行隐藏拍摄者)。其他模式不支持此字段。 |
+| _features       | Array   | 包含"roam"代表当前Pilot OS支持Pilot Tour功能；包含“AMSD”代表当前Pilot OS不支持了“拼接焦距”功能 |
 
 **返回内容：**
 
@@ -403,6 +411,45 @@ Http请求的通用json格式如下：
 ```
 
 相机端预览流地址:相机IP:6666
+
+
+
+####   解析预览流
+
+播放端以自身为TCP**客户端**，通过IP和端口连接上**相机**后，相机自动发送视频数据包。
+
+数据包由**packet head**和**video data**组成，结构如下所示：
+
+ \+      packet head      +      video data     +
+
+
+
+
+##### packet head:
+
+ \+      magic     +     key     +      codec     +     ts     +   len     +
+
+- magic: 4 bytes (固定为 0x12, 0x34, 0x56, 0x78，标识包的开始，**大端序**)
+
+- key: 2 bytes (表示是否为关键帧，0: 不是, 1: 是，**大端序**)
+
+- codec: 2 bytes (视频编码标识，1: H.264，**大端序**)
+
+- ts: 4 bytes (时间戳, **大端序**)
+
+- len: 4 bytes (video data的长度，**大端序**)
+
+
+
+
+##### video data:
+保存的是视频裸数据(H.264)
+
+
+
+你也可以选择使用Labpano的**PiPanoSDK**来接收预览流，PiPanoSDK提供了解析预览流和渲染全景画面的方法。可以在这里下载：[PiPanoSDK-iOS](https://pilot-1251012561.cos.ap-guangzhou.myqcloud.com/files/PiPanoSDK-iOS.zip)，[PiPanoSDK-Android](https://pilot-1251012561.cos.ap-guangzhou.myqcloud.com/files/PiPanoSDK-Android.zip)
+
+
 
 
 
@@ -1625,20 +1672,20 @@ Http请求的通用json格式如下：
 
 **输出参数：**
 
-| 字段            | 字段类型 | 描述                                                         |
-| --------------- | -------- | ------------------------------------------------------------ |
-| platformId      | int      | 平台id                                                       |
-| account         | String   | 平台账号名                                                   |
-| autoDefinition  | Boolean  | 是否打开自动清晰度                                           |
-| definition      | String   | 清晰度(分辨率)                                               |
-| privacy         | int      | 平台隐私                                                     |
-| title           | String   | 平台标题                                                     |
-| login           | Boolean  | 1、平台是否登录 (facebook、youtube)                                                                                           2、rtmp平台，表示是否开启了身份认证（备注:firmwareVersion大于5044可用） |
-| facebookPubType | int      | 时间线（个人主页）：0；主页：1；小组：2                      |
-| facebookPubId   | String   | id                                                           |
-| facebookPubName | String   | Name                                                         |
-| token           | string   | 1、facebook、youtube登录后的token，为空表示登录信息过期                                                2、rtmp平台，表示为用户名和密码（备注:firmwareVersion大于5044可用）                                                                                                                格式`Username;Password`Username表示用户名，Password表示密码 |
-| pushId          | String   | self平台的直播名称                                           |
+| 字段              | 字段类型    | 描述                                       |
+| --------------- | ------- | ---------------------------------------- |
+| platformId      | int     | 平台id                                     |
+| account         | String  | 平台账号名                                    |
+| autoDefinition  | Boolean | 是否打开自动清晰度                                |
+| definition      | String  | 清晰度(分辨率)                                 |
+| privacy         | int     | 平台隐私                                     |
+| title           | String  | 平台标题                                     |
+| login           | Boolean | 1、平台是否登录 (facebook、youtube)                                                                                           2、rtmp平台，表示是否开启了身份认证（备注:firmwareVersion大于5044可用） |
+| facebookPubType | int     | 时间线（个人主页）：0；主页：1；小组：2                    |
+| facebookPubId   | String  | id                                       |
+| facebookPubName | String  | Name                                     |
+| token           | string  | 1、facebook、youtube登录后的token，为空表示登录信息过期                                                2、rtmp平台，表示为用户名和密码（备注:firmwareVersion大于5044可用）                                                                                                                格式`Username;Password`Username表示用户名，Password表示密码 |
+| pushId          | String  | self平台的直播名称                              |
 
 平台对应隐私:
 
@@ -2416,12 +2463,12 @@ http+json,Post传参
 
 **直播选项表**：
 
-| 选项名称                   | 值类型       | 描述                                                         |
-| -------------------------- | ------------ | ------------------------------------------------------------ |
-| `_live$rtmp$encode`        | String       | rtmp编码，默认H.264。                                        |
-| `_live$rtmp$encodeSupport` | String Array | 只读，rtmp支持的编码。当前为[“H.264”,“H.265”]                |
-| `_live$self$encode`        | String       | 自身推流编码，默认H.264。                                    |
-| `_live$self$encodeSupport` | String Array | 只读，自身推流支持的编码。当前为 [“H.264”,“H.265”]           |
+| 选项名称                       | 值类型          | 描述                                       |
+| -------------------------- | ------------ | ---------------------------------------- |
+| `_live$rtmp$encode`        | String       | rtmp编码，默认H.264。                          |
+| `_live$rtmp$encodeSupport` | String Array | 只读，rtmp支持的编码。当前为[“H.264”,“H.265”]        |
+| `_live$self$encode`        | String       | 自身推流编码，默认H.264。                          |
+| `_live$self$encodeSupport` | String Array | 只读，自身推流支持的编码。当前为 [“H.264”,“H.265”]       |
 | `_live$rtmp$login`         | bool         | 设置rtmp推流的login状态。开启:`ture`  关闭:`false` 。备注:firmwareVersion大于5044可用 |
 | `_live$rtmp$token`         | String       | 设置rtmp推流的用户名和密码； 字符串格式  "UserName;Password"。                         注意：支持的字符  `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@._-` 备注:firmwareVersion大于5044可用 |
 
