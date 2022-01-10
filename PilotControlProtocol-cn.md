@@ -410,6 +410,8 @@ Http请求的通用json格式如下：
 } 
 ```
 
+预览的规格： 1024*512 （1k）    24fps      `1_000_1000bps`
+
 相机端预览流地址:相机IP:6666
 
 
@@ -1101,7 +1103,43 @@ Http请求的通用json格式如下：
 }
 ```
 
+注意1：
 
+关于专业参数设置， 分为两种情况：在拍照、漫游模式下，关于设置mode值说明
+  1、当"exposure"=0（自动曝光时），设置参数时”mode“=0
+
+    "exposure" 可用
+    "ev"  可用，
+    "iso" 可用，获取接口返回值对应字段取："iso"
+    "wb" 可用
+  2、当"exposure"为非0时（手动曝光时） 设置参数时”mode“=1
+    "exposure" 可用
+    "ev"  不可用
+    "iso" 可用，获取接口返回值对应字段取："manualISO"
+    "wb" 可用
+
+  注意:"mode" 取值 根据  "exposure" 值 决定
+    "exposure" 为0 时 为自动，mode值为0
+    "exposure" 非0 时 为手动，mode值为1
+  设置参数应准确设置"mode"值，其他模式mode值为0
+
+
+
+注意2:
+
+ 未拼接视频只能设置ISO、EV
+
+ 实时视频、延时摄影只能设置ISO、EV、拼接焦距
+
+谷歌街景只能设置EV、拼接焦距             
+
+ 初次连接相机，需要切换一次模式，可以指定你想要操作的模式。
+
+ 在执行相应的操作之前，需要切换到相应的模式(如果你确定相机当前模式是你想要操作的模式则不需要切换)。
+
+ 如想要拍照，先切换到拍照模式，再设置拍照相应的参数，再拍照。
+
+ 想要录实时视频，切换到实时视频，设置实时视频相关参数，再录制
 
 
 
@@ -1599,6 +1637,16 @@ Http请求的通用json格式如下：
 | `_camera$videoStreetView$storagePart`    | `String`                    | 街景视频当前分段存储值，空串时不分段                       |
 | `_camera$videoTimeLapse$storagePartSupport` | `Array<Map<String,String>>` | 延时视频支持的分段存储列表值，只读，具体格式参考`_camera$video$storagePartSupport` |
 | `_camera$videoTimeLapse$storagePart`     | `String`                    | 延时视频当前分段存储值，空串时不分段存储                     |
+| `_camera$photo$resolution`               | `String`                    | 当前拍照模式选中分辨率(通过`camera._setResolution`设置分辨率，不支持`camera.setOptions`) |
+| `_camera$photo$resolutionSupport`        | `Array<Map<String,String>>` | 拍照模式所支持的分辨率列表                            |
+| `_camera$roam$resolution`                | `String`                    | 当前漫游模式选中分辨率(通过`camera._setResolution`设置分辨率，不支持`camera.setOptions`) |
+| `_camera$roam$resolutionSupport`         | `Array<Map<String,String>>` | 漫游模式所支持的分辨率列表                            |
+| `_camera$video$resolution`               | `String`                    | 当前实时视频模式选中分辨率(通过`camera._setResolution`设置分辨率，不支持`camera.setOptions`) |
+| `_camera$video$resolutionSupport`        | `Array<Map<String,String>>` | 实时视频模式所支持的分辨率列表                          |
+| `_camera$videoFishEye$resolution`        | `String`                    | 当前未拼接视频模式选中分辨率(通过`camera._setResolution`设置分辨率，不支持`camera.setOptions`) |
+| `_camera$videoFishEye$resolutionSupport` | `Array<Map<String,String>>` | 未拼接视频模式所支持的分辨率列表                         |
+| `_camera$videoTimeLapse$resolution`      | `String`                    | 当前延时摄影视频模式选中分辨率(通过`camera._setResolution`设置分辨率，不支持`camera.setOptions`) |
+| `camera$videoTimeLapse$resolutionSupport` | `Array<Map<String,String>>` | 延时视频模式所支持的分辨率列表                          |
 
 **示例**
 
@@ -2045,7 +2093,11 @@ Youtube: 0-私享(Private)  1-公开(Public)  2-不公开(Unlisted)
 }
 ```
 
+注意:
 
+1、如果开启了预览，必须先关闭预览，再开始直播。
+
+2、在直播的过程中不能开启预览
 
 
 
@@ -3084,6 +3136,12 @@ http+json,Post传参
 
 
 ## 3 收流
+
+注意:
+
+相机处于拍照模式(不区分安卓、iOS) : 相机正在拍摄照片的过程中(包括倒计时)，需要重新收流时(即客户端与相机断开，重新连接相机时)，需要先查询拍摄状态，直到拍摄完成，才能按照以下流程处理。其他模式不用考虑
+
+
 
 ### 收流-iOS
 

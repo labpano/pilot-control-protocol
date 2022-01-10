@@ -414,6 +414,8 @@ Attention:
 } 
 ```
 
+Preview specifications:  1024*512 (1k)    24fps   `1_000_1000bps`
+
 Camera preview stream address: Camera  IP: 6666
 
 
@@ -1110,6 +1112,49 @@ Return failure
 
 
 
+Note 1.
+
+About professional parameter settings, divided into two cases: in the photo, roaming mode, about setting mode value description
+
+  1, when "exposure" = 0 (automatic exposure), set the parameters "mode" = 0
+
+    "Exposure" available
+    "ev" available, "ios" available
+    "ios" available, get the interface return value of the corresponding field to take: "iso"
+    "wb" available
+
+  2, when the "exposure" is not 0 (manual exposure) set parameters "mode" = 1
+
+    "exposure" available
+    "ev" is not available
+    "ios" available, get the interface return value of the corresponding field to take: "manualISO"
+    "wb" is available
+
+  Note: The value of "mode" is determined by the value of "exposure".
+
+    When "exposure" is 0, it is automatic and mode is 0.
+    When "exposure" is not 0, it is manual, and the mode value is 1.
+
+  The "mode" value should be set exactly for the parameter "exposure" and 0 for other modes.
+
+
+
+Note 2:
+
+ Only ISO and EV can be set for unstitched video
+
+ Real-time video, time-lapse photography can only set ISO, EV, stitching focal length
+
+Google Street View can only set EV, stitching focal length             
+
+ When you connect the camera for the first time, you need to switch the mode once, and you can specify the mode you want to operate.
+
+ Before performing the corresponding operation, you need to switch to the corresponding mode (if you are sure that the current mode of the camera is the mode you want to operate, you do not need to switch).
+
+ If you want to take photos, switch to photo mode first, then set the corresponding parameters for taking photos, and then take photos.
+
+ If you want to record live video, switch to live video, set the parameters related to live video, and then record.
+
 
 
 ### Capture - Get Pro Options
@@ -1606,6 +1651,16 @@ Return failure
 | `_camera$videoStreetView$storagePart`    | `string`                    | Currently segmented store value of StreetView Video, and is not segmented if empty string |
 | `_camera$videoTimeLapse$storagePartSupport` | `Array<Map<string,string>>` | Supported Segmented Storage values of Timelapse video , read-only |
 | `_camera$videoTimeLapse$storagePart`     | `string`                    | Currently segmented store value of Timelapse Video, and is not segmented if empty string |
+| `_camera$photo$resolution`               | `String`                    | Current photo mode selected resolution (set resolution by `camera._setResolution`, `camera.setOptions` is not supported) |
+| `_camera$photo$resolutionSupport`        | `Array<Map<String,String>>` | List of resolutions supported by photo mode |
+| `_camera$roam$resolution`                | `String`                    | Current roaming mode selected resolution (set resolution by `camera._setResolution`, `camera.setOptions` is not supported) |
+| `_camera$roam$resolutionSupport`         | `Array<Map<String,String>>` | List of resolutions supported by roaming mode |
+| `_camera$video$resolution`               | `String`                    | Current live video mode selected resolution (set resolution by `camera._setResolution`, `camera.setOptions` is not supported) |
+| `_camera$video$resolutionSupport`        | `Array<Map<String,String>>` | List of resolutions supported by Live Video mode |
+| `_camera$videoFishEye$resolution`        | `String`                    | Current unstitched video mode selected resolution (set resolution by `camera._setResolution`, `camera.setOptions` is not supported) |
+| `_camera$videoFishEye$resolutionSupport` | `Array<Map<String,String>>` | List of resolutions supported by unstitched video mode |
+| `_camera$videoTimeLapse$resolution`      | `String`                    | Current time-lapse video mode selected resolution (set resolution by `camera._setResolution`, `camera.setOptions` is not supported) |
+| `camera$videoTimeLapse$resolutionSupport` | `Array<Map<String,String>>` | List of resolutions supported by time-lapse video mode |
 
 **Example**
 
@@ -2058,7 +2113,11 @@ Gets a list of bitrate supported by each platform for each resolution
 }
 ```
 
+Attention:
 
+1、If you open the preview, you must close the preview first, and then start the live broadcast.
+
+2、You cannot open the preview during the live broadcast
 
 
 
@@ -3101,6 +3160,12 @@ Only used to call camera.takePicture after turning on hide photographer mode.
 
 
 ## 3 Receive Stream
+
+Attention:
+
+The camera is in photo mode (does not distinguish between Android and iOS) : When the camera is in the process of taking photos (including countdown) and needs to re-collect the stream (i.e., when the client is disconnected from the camera and reconnects the camera), you need to check the shooting status first until the shooting is completed, and then you can follow the process below. Other modes do not need to be considered
+
+
 
 ### Receive Stream-iOS
 
